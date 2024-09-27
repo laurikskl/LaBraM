@@ -187,7 +187,7 @@ def save_pickle(object, filename):
 TUEV dataset is downloaded from https://isip.piconepress.com/projects/tuh_eeg/html/downloads.shtml
 """
 
-root = "/userhome1/jiangweibang/Datasets/TUH_Event/v2.0.0/edf"
+root = "/root/LaBraM/datasets/tuh_eeg_events/v2.0.1/edf"
 train_out_dir = os.path.join(root, "processed_train")
 eval_out_dir = os.path.join(root, "processed_eval")
 if not os.path.exists(train_out_dir):
@@ -219,9 +219,30 @@ load_up_objects(
 
 
 #transfer to train, eval, and test
-root = "/share/TUEV/"
+# root = "/share/TUEV/"
+
 seed = 4523
 np.random.seed(seed)
+
+# Function to create directory if it doesn't exist
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Created directory: {directory}")
+
+# Assuming 'root' is already defined
+processed_dir = os.path.join(root, "processed")
+processed_train_dir = os.path.join(processed_dir, "processed_train")
+processed_eval_dir = os.path.join(processed_dir, "processed_eval")
+processed_test_dir = os.path.join(processed_dir, "processed_test")
+
+# Ensure all necessary directories exist
+ensure_dir(os.path.join(root, "processed_train"))
+ensure_dir(os.path.join(root, "processed_eval"))
+ensure_dir(processed_dir)
+ensure_dir(processed_train_dir)
+ensure_dir(processed_eval_dir)
+ensure_dir(processed_test_dir)
 
 train_files = os.listdir(os.path.join(root, "processed_train"))
 train_sub = list(set([f.split("_")[0] for f in train_files]))
@@ -234,9 +255,19 @@ train_sub = list(set(train_sub) - set(val_sub))
 val_files = [f for f in train_files if f.split("_")[0] in val_sub]
 train_files = [f for f in train_files if f.split("_")[0] in train_sub]
 
+# Using shutil.copy instead of os.system for better cross-platform compatibility
+import shutil
+
 for file in train_files:
-    os.system(f"cp {os.path.join(root, 'processed_train', file)} {os.path.join(root, 'processed', 'processed_train')}")
+    os.rename(os.path.join(root, 'processed_train', file), os.path.join(processed_train_dir, file))
+
 for file in val_files:
-    os.system(f"cp {os.path.join(root, 'processed_train', file)} {os.path.join(root, 'processed', 'processed_eval')}")
+    os.rename(os.path.join(root, 'processed_train', file), os.path.join(processed_eval_dir, file))
+
 for file in test_files:
-    os.system(f"cp {os.path.join(root, 'processed_eval', file)} {os.path.join(root, 'processed', 'processed_test')}")
+    os.rename(os.path.join(root, 'processed_eval', file), os.path.join(processed_test_dir, file))
+
+print(f"Files copied to:")
+print(f"  Train: {processed_train_dir}")
+print(f"  Validation: {processed_eval_dir}")
+print(f"  Test: {processed_test_dir}")

@@ -756,6 +756,22 @@ class TUEVLoader(torch.utils.data.Dataset):
         X = torch.FloatTensor(X)
         return X, Y
     
+class Graz2aLoader(torch.utils.data.Dataset):
+    def __init__(self, root, files, sampling_rate=200):
+        self.root = root
+        self.files = files
+        self.default_rate = 200
+        self.sampling_rate = sampling_rate
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, index):
+        sample = pickle.load(open(os.path.join(self.root, self.files[index]), "rb"))
+        X = sample["signal"]
+        Y = sample["label"] - 1  # Subtract 1 to make labels 0-indexed
+        X = torch.FloatTensor(X)
+        return X, Y
 
 def prepare_TUEV_dataset(root):
     # set random seed
@@ -799,6 +815,24 @@ def prepare_TUAB_dataset(root):
     train_dataset = TUABLoader(os.path.join(root, "train"), train_files)
     test_dataset = TUABLoader(os.path.join(root, "test"), test_files)
     val_dataset = TUABLoader(os.path.join(root, "val"), val_files)
+    print(len(train_files), len(val_files), len(test_files))
+    return train_dataset, test_dataset, val_dataset
+
+def prepare_Graz_dataset(root):
+    # Set random seed for reproducibility
+    seed = 4523
+    np.random.seed(seed)
+
+    train_files = os.listdir(os.path.join(root, "processed_train"))
+    val_files = os.listdir(os.path.join(root, "processed_eval"))
+    test_files = os.listdir(os.path.join(root, "processed_test"))
+
+    print(len(train_files), len(val_files), len(test_files))
+
+    # Create dataset objects
+    train_dataset = Graz2aLoader(os.path.join(root, "processed_train"), train_files)
+    val_dataset = Graz2aLoader(os.path.join(root, "processed_eval"), val_files)
+    test_dataset = Graz2aLoader(os.path.join(root, "processed_test"), test_files)
     print(len(train_files), len(val_files), len(test_files))
     return train_dataset, test_dataset, val_dataset
 
