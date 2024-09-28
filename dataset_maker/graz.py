@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 def readGDF(fileName):
     raw = mne.io.read_raw_gdf(fileName, preload=True)
-    
     # Apply TUEV-style filtering
     raw.filter(l_freq=0.1, h_freq=75.0)
     raw.notch_filter(50.0)
@@ -14,7 +13,7 @@ def readGDF(fileName):
     # Resample to 200 Hz (TUEV standard)
     raw.resample(200)
     
-    signals = raw.get_data(units='uV')  # Get data in microvolts
+    signals = raw.get_data(units='uV')[:22]  # Get data in microvolts
     times = raw.times
     events, event_id = mne.events_from_annotations(raw)
     
