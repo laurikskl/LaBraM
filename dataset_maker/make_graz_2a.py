@@ -36,13 +36,17 @@ def readGDF(fileName):
     raw = mne.io.read_raw_gdf(fileName, preload=True)
     raw.filter(l_freq=0.1, h_freq=75.0)
     raw.notch_filter(50.0)
-    raw.resample(200)
+    raw.resample(200, n_jobs=5)
     
-    signals = raw.get_data()[:22]
+    signals = raw.get_data(units='uV')[:22]
     times = raw.times
-    events, _ = mne.events_from_annotations(raw)
-    
-    return [signals, times, events]
+    # events, _ = mne.events_from_annotations(raw)
+    annotations = raw.annotations
+    eventData = np.column_stack((annotations.onset, 
+                                    annotations.duration, 
+                                    annotations.description))
+    raw.close()
+    return [signals, times, eventData, raw]
 
 def load_up_objects(BaseDir, Features, OffendingChannels, Labels, OutDir):
     for dirName, subdirList, fileList in tqdm(os.walk(BaseDir)):
@@ -51,7 +55,7 @@ def load_up_objects(BaseDir, Features, OffendingChannels, Labels, OutDir):
             if fname.endswith('.gdf'):
                 print("\t%s" % fname)
                 try:
-                    [signals, times, events] = readGDF(os.path.join(dirName, fname))
+                    [signals, times, events, Rawdata] = readGDF(os.path.join(dirName, fname))
                     signals, offending_channels, labels = BuildEvents(signals, times, events)
 
                     for idx, (signal, offending_channel, label) in enumerate(zip(signals, offending_channels, labels)):

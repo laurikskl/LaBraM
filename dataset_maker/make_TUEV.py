@@ -187,7 +187,8 @@ def save_pickle(object, filename):
 TUEV dataset is downloaded from https://isip.piconepress.com/projects/tuh_eeg/html/downloads.shtml
 """
 
-root = "/root/LaBraM/datasets/tuh_eeg_events/v2.0.1/edf"
+root = "/root/LaBraM/datasets/v2.0.1/edf"
+root = "/root/LaBraM/datasets/v2.0.1/edf_debug"
 train_out_dir = os.path.join(root, "processed_train")
 eval_out_dir = os.path.join(root, "processed_eval")
 if not os.path.exists(train_out_dir):
